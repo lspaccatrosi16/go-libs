@@ -70,3 +70,10 @@ Will produce a result of:
 | ------- | ---------------------------------------- |
 | `set`   | Implementation of an exclusive set in go |
 | `stack` | Implementation of a stack in go          |
+
+
+---
+
+### Licence
+
+This project is availible under the Apache-2.0 licence. See [LICENCE](./LICENCE) for details.
