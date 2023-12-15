@@ -66,10 +66,11 @@ Will produce a result of:
 ---
 ### `structures`
 
-| Package | Description                              |
-| ------- | ---------------------------------------- |
-| `set`   | Implementation of an exclusive set in go |
-| `stack` | Implementation of a stack in go          |
+| Package     | Description                                     |
+| ----------- | ----------------------------------------------- |
+| `cartesian` | Implementation of a cartesian coordinate systen |
+| `set`       | Implementation of an exclusive set in go        |
+| `stack`     | Implementation of a stack in go                 |
 
 
 ---
