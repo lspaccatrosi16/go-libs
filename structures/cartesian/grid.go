@@ -12,9 +12,9 @@ func (cg *CoordinateGrid[T]) Add(c Coordinate, val T) {
 
 	if v, ok := (*cg)[c[0]]; ok {
 		v[c[1]] = val
+	} else {
+		(*cg)[0] = map[int]T{c[1]: val}
 	}
-
-	(*cg)[0] = map[int]T{c[1]: val}
 }
 
 // Swap two points round
