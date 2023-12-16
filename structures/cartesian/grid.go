@@ -4,6 +4,7 @@ import "fmt"
 
 type CoordinateGrid[T any] map[int]map[int]T
 
+// Add a new coordinate to the grid
 func (cg *CoordinateGrid[T]) Add(c Coordinate, val T) {
 	if cg == nil {
 		cg = new(CoordinateGrid[T])
@@ -16,6 +17,7 @@ func (cg *CoordinateGrid[T]) Add(c Coordinate, val T) {
 	(*cg)[0] = map[int]T{c[1]: val}
 }
 
+// Swap two points round
 func (cg *CoordinateGrid[T]) Swap(c1, c2 Coordinate) {
 	if cg == nil {
 		return
@@ -23,6 +25,7 @@ func (cg *CoordinateGrid[T]) Swap(c1, c2 Coordinate) {
 	(*cg)[c1[0]][c1[1]], (*cg)[c2[0]][c2[1]] = (*cg)[c2[0]][c2[1]], (*cg)[c1[0]][c1[1]]
 }
 
+// Get the entry at the coordinate c
 func (cg *CoordinateGrid[T]) Get(c Coordinate) T {
 	if cg == nil {
 		return *new(T)
@@ -31,7 +34,7 @@ func (cg *CoordinateGrid[T]) Get(c Coordinate) T {
 	return (*cg)[c[0]][c[1]]
 }
 
-func (cg *CoordinateGrid[T]) arrs() [][]T {
+func (cg *CoordinateGrid[T]) rows() [][]T {
 	if cg == nil {
 		return nil
 	}
@@ -65,8 +68,27 @@ func (cg *CoordinateGrid[T]) arrs() [][]T {
 	return lines
 }
 
+func (cg *CoordinateGrid[T]) cols() [][]T {
+	if cg == nil {
+		return nil
+	}
+
+	lines := [][]T{}
+
+	for _, l := range *cg {
+		thisCol := []T{}
+		for _, c := range l {
+			thisCol = append(thisCol, c)
+		}
+		lines = append(lines, thisCol)
+	}
+
+	return lines
+}
+
+// Pretty format the grid
 func (cg *CoordinateGrid[T]) String() string {
-	lines := cg.arrs()
+	lines := cg.rows()
 
 	outStr := ""
 	for _, l := range lines {
@@ -79,8 +101,9 @@ func (cg *CoordinateGrid[T]) String() string {
 	return outStr
 }
 
+// Produce a hashable representation of the grid
 func (cg *CoordinateGrid[T]) Hash() string {
-	arrs := cg.arrs()
+	arrs := cg.rows()
 
 	hashStr := ""
 
@@ -91,4 +114,14 @@ func (cg *CoordinateGrid[T]) Hash() string {
 	}
 
 	return hashStr
+}
+
+// Get the grid's columns
+func (cg *CoordinateGrid[T]) GetRows() [][]T {
+	return cg.rows()
+}
+
+// Get the grid's rows
+func (cg *CoordinateGrid[T]) GetCols() [][]T {
+	return cg.cols()
 }
