@@ -22,11 +22,11 @@ func (q *Queue[T]) Add(val T, priority int) {
 	found := false
 
 	for i, v := range q.Items {
-		if item.Priority > v.Priority {
+		if item.Priority < v.Priority {
 			if i == 0 {
 				q.Items = append([]Item[T]{item}, q.Items...)
 			} else {
-				q.Items = append(q.Items[:i], q.Items[i+1:]...)
+				q.Items = append(q.Items[:i+1], q.Items[i:]...)
 				q.Items[i] = item
 			}
 			found = true

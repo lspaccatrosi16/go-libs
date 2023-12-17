@@ -37,14 +37,14 @@ func (g *Graph) AddEdge(n1, n2 GraphNode, weight int) {
 	}
 
 	e1 := Edge{
-		Node:   n1,
+		Node:   n2,
 		Weight: weight,
 	}
 
 	g.Edges[n1] = append(g.Edges[n1], e1)
 
 	e2 := Edge{
-		Node:   n2,
+		Node:   n1,
 		Weight: weight,
 	}
 
@@ -83,6 +83,7 @@ func RunDijkstra(start, end GraphNode, graph *Graph) DijkstraRun {
 	queue.Add(startVertex, 0)
 
 	for queue.Len() != 0 {
+		// fmt.Printf("len: %d\n", queue.Len())
 		v := queue.Pop()
 		name := v.Node.Ident()
 		if visited[name] {
@@ -90,20 +91,19 @@ func RunDijkstra(start, end GraphNode, graph *Graph) DijkstraRun {
 		}
 
 		visited[name] = true
-
 		edges := graph.Edges[v.Node]
 
 		for _, edge := range edges {
-			name := edge.Node.Ident()
-			if !visited[name] {
-				if dist[name]+edge.Weight < dist[name] {
+			eName := edge.Node.Ident()
+			if !visited[eName] {
+				if dist[eName]+edge.Weight < dist[name] {
 					newDist := dist[name] + edge.Weight
 					new := Vertex{
 						Node:     edge.Node,
 						Distance: newDist,
 					}
-					dist[name] = newDist
-					prev[name] = name
+					dist[eName] = newDist
+					prev[eName] = name
 					queue.Add(new, newDist)
 				}
 			}
