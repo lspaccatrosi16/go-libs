@@ -1,6 +1,10 @@
 package cartesian
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/lspaccatrosi16/go-libs/algorithms/dijkstra"
+)
 
 type CoordinateGrid[T any] map[int]map[int]T
 
@@ -124,4 +128,65 @@ func (cg *CoordinateGrid[T]) GetRows() [][]T {
 // Get the grid's rows
 func (cg *CoordinateGrid[T]) GetCols() [][]T {
 	return cg.cols()
+}
+
+// Find the shortest path between two elements
+func RunDijkstra(cg *CoordinateGrid[int], start, end Coordinate) ([]Coordinate, int) {
+	graph := dijkstra.Graph{}
+
+	nm := map[Coordinate]*dijkstraGridPoint{}
+
+	rows := cg.GetRows()
+
+	edges := map[Coordinate][]Coordinate{}
+
+	for y, r := range rows {
+		for x, i := range r {
+			coord := Coordinate{x, y}
+			gp := &dijkstraGridPoint{
+				Point: coord,
+				W:     i,
+			}
+
+			if y+1 < len(rows) {
+				edges[coord] = append(edges[coord], coord.Transform(0, 1))
+			}
+
+			if x+1 < len(r) {
+				edges[coord] = append(edges[coord], coord.Transform(1, 0))
+			}
+
+			graph.AddNode(gp)
+			nm[coord] = gp
+		}
+	}
+
+	for c, e := range edges {
+		for _, edge := range e {
+			graph.AddEdge(nm[c], nm[edge], cg.Get(c))
+		}
+	}
+
+	runProf := dijkstra.RunDijkstra(nm[start], nm[end], &graph)
+
+	order := []Coordinate{}
+
+	for _, gn := range runProf.Visited {
+		order = append(order, gn.(*dijkstraGridPoint).Point)
+	}
+
+	return order, runProf.PathDistance
+}
+
+type dijkstraGridPoint struct {
+	Point Coordinate
+	W     int
+}
+
+func (d *dijkstraGridPoint) Ident() string {
+	return fmt.Sprintf("%d_%d", d.Point[0], d.Point[1])
+
+}
+func (d *dijkstraGridPoint) Weight() int {
+	return d.W
 }
