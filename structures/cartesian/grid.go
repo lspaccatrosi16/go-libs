@@ -163,7 +163,7 @@ func RunDijkstra(cg *CoordinateGrid[int], start, end Coordinate) ([]Coordinate, 
 
 	for c, e := range edges {
 		for _, edge := range e {
-			graph.AddEdge(nm[c], nm[edge], cg.Get(c))
+			graph.AddEdge(nm[c], nm[edge], cg.Get(edge))
 		}
 	}
 
