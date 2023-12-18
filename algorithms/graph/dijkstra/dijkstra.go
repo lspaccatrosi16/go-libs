@@ -1,6 +1,7 @@
 package dijkstra
 
 import (
+	"fmt"
 	"math"
 	"slices"
 
@@ -10,22 +11,11 @@ import (
 type GraphNode interface {
 	Weight() int
 	Ident() string
-	RegisterPrevious(p GraphNode)
 }
 
 type Graph struct {
 	Nodes []GraphNode
-	Edges map[GraphNode][]Edge
-}
-
-type Edge struct {
-	Node   GraphNode
-	Weight int
-}
-
-type Vertex struct {
-	Node     GraphNode
-	Distance int
+	Edges map[GraphNode][]GraphNode
 }
 
 func (g *Graph) AddNode(n GraphNode) {
@@ -34,22 +24,11 @@ func (g *Graph) AddNode(n GraphNode) {
 
 func (g *Graph) AddEdge(n1, n2 GraphNode, weight int) {
 	if g.Edges == nil {
-		g.Edges = map[GraphNode][]Edge{}
+		g.Edges = map[GraphNode][]GraphNode{}
 	}
 
-	e1 := Edge{
-		Node:   n2,
-		Weight: weight,
-	}
-
-	g.Edges[n1] = append(g.Edges[n1], e1)
-
-	e2 := Edge{
-		Node:   n1,
-		Weight: weight,
-	}
-
-	g.Edges[n2] = append(g.Edges[n2], e2)
+	g.Edges[n1] = append(g.Edges[n1], n2)
+	g.Edges[n2] = append(g.Edges[n2], n1)
 }
 
 type DijkstraRun struct {
@@ -68,62 +47,59 @@ func RunDijkstra(start, end GraphNode, graph *Graph) DijkstraRun {
 		identMap[n.Ident()] = n
 	}
 
-	queue := mpq.Queue[Vertex]{}
-
-	startVertex := Vertex{
-		Node:     start,
-		Distance: 0,
-	}
+	queue := mpq.Queue[GraphNode]{}
 
 	for _, node := range graph.Nodes {
-		dist[node.Ident()] = math.MaxInt
+		if node.Ident() != start.Ident() {
+			dist[node.Ident()] = math.MaxInt
+			queue.Add(node, math.MaxInt)
+		}
 	}
 
 	dist[start.Ident()] = 0
-
-	queue.Add(startVertex, 0)
+	queue.Add(start, 0)
 
 	for queue.Len() != 0 {
 		v := queue.Pop()
-		name := v.Node.Ident()
+		name := v.Ident()
 		if visited[name] {
 			continue
 		}
 
-		visited[name] = true
-		edges := graph.Edges[v.Node]
+		neighbors := graph.Edges[v]
 
-		for _, edge := range edges {
-			eName := edge.Node.Ident()
-			if !visited[eName] {
-				edge.Node.RegisterPrevious(v.Node)
-				provWeight := edge.Node.Weight()
-				if provWeight != math.MaxInt && dist[eName]+provWeight < dist[name] {
-					newDist := dist[name] + provWeight
-					new := Vertex{
-						Node:     edge.Node,
-						Distance: newDist,
-					}
-					dist[eName] = newDist
-					prev[eName] = name
-					queue.Add(new, newDist)
-				}
+		for _, neighbor := range neighbors {
+			nName := neighbor.Ident()
+			alt := dist[name] + neighbor.Weight()
+			if alt < dist[nName] {
+				dist[nName] = alt
+				prev[nName] = name
 			}
 		}
 	}
 
-	pv := end.Ident()
+	// var ok bool
 
 	order := []GraphNode{}
 
+	fmt.Println(dist[end.Ident()])
+	pv := end.Ident()
+
 	for pv != start.Ident() {
 		order = append(order, identMap[pv])
+		fmt.Println(pv)
 		pv = prev[pv]
+
+		// if !ok {
+		// 	panic("not found")
+		// }
 	}
 
 	order = append(order, identMap[start.Ident()])
 
 	slices.Reverse(order)
+
+	fmt.Println("finished")
 
 	return DijkstraRun{
 		Visited:      order,

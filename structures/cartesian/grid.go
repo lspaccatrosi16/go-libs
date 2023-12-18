@@ -2,9 +2,8 @@ package cartesian
 
 import (
 	"fmt"
-	"math"
 
-	"github.com/lspaccatrosi16/go-libs/algorithms/dijkstra"
+	"github.com/lspaccatrosi16/go-libs/algorithms/graph/dijkstra"
 )
 
 type CoordinateGrid[T any] map[int]map[int]T
@@ -44,19 +43,7 @@ func (cg *CoordinateGrid[T]) rows() [][]T {
 		return nil
 	}
 
-	maxX := 0
-	maxY := 0
-
-	for x, l := range *cg {
-		if x > maxX {
-			maxX = x
-		}
-		for y := range l {
-			if y > maxY {
-				maxY = y
-			}
-		}
-	}
+	maxX, maxY := cg.MaxBounds()
 
 	lines := make([][]T, maxY+1)
 
@@ -131,17 +118,27 @@ func (cg *CoordinateGrid[T]) GetCols() [][]T {
 	return cg.cols()
 }
 
-// Find the shortest path between two elements
-func RunDijkstra(cg *CoordinateGrid[int], start, end Coordinate) ([]Coordinate, int) {
-	return RunDijkstraConsec(cg, start, end, -1)
-}
+// Get the maxium values for each of X, Y
+func (cg *CoordinateGrid[T]) MaxBounds() (int, int) {
+	maxX := 0
+	maxY := 0
 
-// Find the shortest path between two elements with a maxiumum travel in any 1 direction
-func RunDijkstraConsec(cg *CoordinateGrid[int], start, end Coordinate, maxConsective int) ([]Coordinate, int) {
-	if maxConsective == -1 {
-		maxConsective = math.MaxInt
+	for x, l := range *cg {
+		if x > maxX {
+			maxX = x
+		}
+		for y := range l {
+			if y > maxY {
+				maxY = y
+			}
+		}
 	}
 
+	return maxX, maxY
+}
+
+// Find the shortest path between two elements
+func RunDijkstra(cg *CoordinateGrid[int], start, end Coordinate) ([]Coordinate, int, *CoordinateGrid[string]) {
 	graph := dijkstra.Graph{}
 
 	nm := map[Coordinate]*dijkstraGridPoint{}
@@ -153,9 +150,8 @@ func RunDijkstraConsec(cg *CoordinateGrid[int], start, end Coordinate, maxConsec
 		for x, i := range r {
 			coord := Coordinate{x, y}
 			gp := &dijkstraGridPoint{
-				Point:            coord,
-				W:                i,
-				SameDirectionCap: maxConsective,
+				Point: coord,
+				W:     i,
 			}
 
 			if y+1 < len(rows) {
@@ -179,76 +175,43 @@ func RunDijkstraConsec(cg *CoordinateGrid[int], start, end Coordinate, maxConsec
 
 	runProf := dijkstra.RunDijkstra(nm[start], nm[end], &graph)
 
+	dgpOrder := []*dijkstraGridPoint{}
 	order := []Coordinate{}
 
 	for _, gn := range runProf.Visited {
-		order = append(order, gn.(*dijkstraGridPoint).Point)
+		dgp := gn.(*dijkstraGridPoint)
+
+		order = append(order, dgp.Point)
+		dgpOrder = append(dgpOrder, dgp)
 	}
 
-	return order, runProf.PathDistance
+	repreGrid := CoordinateGrid[string]{}
+
+	mx, my := cg.MaxBounds()
+
+	for x := 0; x <= mx; x++ {
+		for y := 0; y <= my; y++ {
+			repreGrid.Add(Coordinate{x, y}, " ")
+		}
+	}
+
+	for _, dgp := range dgpOrder {
+		repreGrid.Add(dgp.Point, "#")
+	}
+
+	return order, runProf.PathDistance, &repreGrid
 }
 
 type dijkstraGridPoint struct {
-	Point            Coordinate
-	W                int
-	PrevPoint        *dijkstraGridPoint
-	SameDirectionCap int
+	Point Coordinate
+	W     int
 }
 
 func (d *dijkstraGridPoint) Ident() string {
 	return fmt.Sprintf("%d_%d", d.Point[0], d.Point[1])
 
 }
+
 func (d *dijkstraGridPoint) Weight() int {
-	pp := d
-
-	sameDirection := 1
-	sameDirectionDir := ""
-
-	for i := 0; i < d.SameDirectionCap; i++ {
-		if pp != nil && pp.PrevPoint != nil {
-			var xSame, ySame bool
-			switch pp.Point[0] - pp.PrevPoint.Point[0] {
-			case 1, -1:
-				xSame = true
-			}
-			switch pp.Point[1] - pp.PrevPoint.Point[1] {
-			case 1, -1:
-				ySame = true
-			}
-
-			pp = pp.PrevPoint
-
-			if (xSame || ySame) && !(xSame && ySame) {
-				var thisDirectionDir string
-				if xSame {
-					thisDirectionDir = "x"
-				} else {
-					thisDirectionDir = "y"
-				}
-
-				if sameDirectionDir == "" {
-					sameDirectionDir = thisDirectionDir
-					sameDirection++
-				} else if sameDirectionDir == thisDirectionDir {
-					sameDirection++
-				} else {
-					sameDirectionDir = thisDirectionDir
-					sameDirection = 0
-				}
-			}
-		} else {
-			break
-		}
-
-	}
-	if sameDirection >= d.SameDirectionCap {
-		return math.MaxInt
-	}
-
 	return d.W
-}
-
-func (d *dijkstraGridPoint) RegisterPrevious(node dijkstra.GraphNode) {
-	d.PrevPoint = node.(*dijkstraGridPoint)
 }
