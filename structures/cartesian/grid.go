@@ -2,6 +2,7 @@ package cartesian
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/lspaccatrosi16/go-libs/algorithms/dijkstra"
 )
@@ -132,20 +133,29 @@ func (cg *CoordinateGrid[T]) GetCols() [][]T {
 
 // Find the shortest path between two elements
 func RunDijkstra(cg *CoordinateGrid[int], start, end Coordinate) ([]Coordinate, int) {
+	return RunDijkstraConsec(cg, start, end, -1)
+}
+
+// Find the shortest path between two elements with a maxiumum travel in any 1 direction
+func RunDijkstraConsec(cg *CoordinateGrid[int], start, end Coordinate, maxConsective int) ([]Coordinate, int) {
+	if maxConsective == -1 {
+		maxConsective = math.MaxInt
+	}
+
 	graph := dijkstra.Graph{}
 
 	nm := map[Coordinate]*dijkstraGridPoint{}
+	edges := map[Coordinate][]Coordinate{}
 
 	rows := cg.GetRows()
-
-	edges := map[Coordinate][]Coordinate{}
 
 	for y, r := range rows {
 		for x, i := range r {
 			coord := Coordinate{x, y}
 			gp := &dijkstraGridPoint{
-				Point: coord,
-				W:     i,
+				Point:            coord,
+				W:                i,
+				SameDirectionCap: maxConsective,
 			}
 
 			if y+1 < len(rows) {
@@ -179,8 +189,10 @@ func RunDijkstra(cg *CoordinateGrid[int], start, end Coordinate) ([]Coordinate, 
 }
 
 type dijkstraGridPoint struct {
-	Point Coordinate
-	W     int
+	Point            Coordinate
+	W                int
+	PrevPoint        *dijkstraGridPoint
+	SameDirectionCap int
 }
 
 func (d *dijkstraGridPoint) Ident() string {
@@ -188,5 +200,55 @@ func (d *dijkstraGridPoint) Ident() string {
 
 }
 func (d *dijkstraGridPoint) Weight() int {
+	pp := d
+
+	sameDirection := 1
+	sameDirectionDir := ""
+
+	for i := 0; i < d.SameDirectionCap; i++ {
+		if pp != nil && pp.PrevPoint != nil {
+			var xSame, ySame bool
+			switch pp.Point[0] - pp.PrevPoint.Point[0] {
+			case 1, -1:
+				xSame = true
+			}
+			switch pp.Point[1] - pp.PrevPoint.Point[1] {
+			case 1, -1:
+				ySame = true
+			}
+
+			pp = pp.PrevPoint
+
+			if (xSame || ySame) && !(xSame && ySame) {
+				var thisDirectionDir string
+				if xSame {
+					thisDirectionDir = "x"
+				} else {
+					thisDirectionDir = "y"
+				}
+
+				if sameDirectionDir == "" {
+					sameDirectionDir = thisDirectionDir
+					sameDirection++
+				} else if sameDirectionDir == thisDirectionDir {
+					sameDirection++
+				} else {
+					sameDirectionDir = thisDirectionDir
+					sameDirection = 0
+				}
+			}
+		} else {
+			break
+		}
+
+	}
+	if sameDirection >= d.SameDirectionCap {
+		return math.MaxInt
+	}
+
 	return d.W
+}
+
+func (d *dijkstraGridPoint) RegisterPrevious(node dijkstra.GraphNode) {
+	d.PrevPoint = node.(*dijkstraGridPoint)
 }

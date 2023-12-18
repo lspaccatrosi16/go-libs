@@ -10,6 +10,7 @@ import (
 type GraphNode interface {
 	Weight() int
 	Ident() string
+	RegisterPrevious(p GraphNode)
 }
 
 type Graph struct {
@@ -83,7 +84,6 @@ func RunDijkstra(start, end GraphNode, graph *Graph) DijkstraRun {
 	queue.Add(startVertex, 0)
 
 	for queue.Len() != 0 {
-		// fmt.Printf("len: %d\n", queue.Len())
 		v := queue.Pop()
 		name := v.Node.Ident()
 		if visited[name] {
@@ -96,8 +96,10 @@ func RunDijkstra(start, end GraphNode, graph *Graph) DijkstraRun {
 		for _, edge := range edges {
 			eName := edge.Node.Ident()
 			if !visited[eName] {
-				if dist[eName]+edge.Weight < dist[name] {
-					newDist := dist[name] + edge.Weight
+				edge.Node.RegisterPrevious(v.Node)
+				provWeight := edge.Node.Weight()
+				if provWeight != math.MaxInt && dist[eName]+provWeight < dist[name] {
+					newDist := dist[name] + provWeight
 					new := Vertex{
 						Node:     edge.Node,
 						Distance: newDist,
@@ -110,7 +112,7 @@ func RunDijkstra(start, end GraphNode, graph *Graph) DijkstraRun {
 		}
 	}
 
-	pv := prev[end.Ident()]
+	pv := end.Ident()
 
 	order := []GraphNode{}
 
@@ -118,6 +120,8 @@ func RunDijkstra(start, end GraphNode, graph *Graph) DijkstraRun {
 		order = append(order, identMap[pv])
 		pv = prev[pv]
 	}
+
+	order = append(order, identMap[start.Ident()])
 
 	slices.Reverse(order)
 
