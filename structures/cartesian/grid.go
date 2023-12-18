@@ -139,7 +139,7 @@ func (cg *CoordinateGrid[T]) MaxBounds() (int, int) {
 	return maxX, maxY
 }
 
-func (cg *CoordinateGrid[T]) FloodFill(start Coordinate, border T) []Coordinate {
+func (cg *CoordinateGrid[T]) FloodFill(start Coordinate, border T, fill T) []Coordinate {
 	queue := mpq.Queue[Coordinate]{}
 	queue.Add(start, 1)
 
@@ -148,7 +148,7 @@ func (cg *CoordinateGrid[T]) FloodFill(start Coordinate, border T) []Coordinate 
 	for queue.Len() != 0 {
 		cur := queue.Pop()
 		curLoc := cg.Get(cur)
-		if curLoc != border {
+		if curLoc != border && !visited[cur] {
 			visited[cur] = true
 			directions := []Coordinate{
 				cur.TransformInDirection(North),
@@ -167,6 +167,7 @@ func (cg *CoordinateGrid[T]) FloodFill(start Coordinate, border T) []Coordinate 
 	for k, v := range visited {
 		if v {
 			visitedArr = append(visitedArr, k)
+			cg.Add(k, fill)
 		}
 	}
 
