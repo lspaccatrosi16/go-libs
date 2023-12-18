@@ -4,9 +4,11 @@ import (
 	"fmt"
 
 	"github.com/lspaccatrosi16/go-libs/algorithms/graph/dijkstra"
+	"github.com/lspaccatrosi16/go-libs/structures/graph"
+	"github.com/lspaccatrosi16/go-libs/structures/mpq"
 )
 
-type CoordinateGrid[T any] map[int]map[int]T
+type CoordinateGrid[T comparable] map[int]map[int]T
 
 // Add a new coordinate to the grid
 func (cg *CoordinateGrid[T]) Add(c Coordinate, val T) {
@@ -137,9 +139,43 @@ func (cg *CoordinateGrid[T]) MaxBounds() (int, int) {
 	return maxX, maxY
 }
 
-// Find the shortest path between two elements
+func (cg *CoordinateGrid[T]) FloodFill(start Coordinate, border T) []Coordinate {
+	queue := mpq.Queue[Coordinate]{}
+	queue.Add(start, 1)
+
+	visited := map[Coordinate]bool{}
+
+	for queue.Len() != 0 {
+		cur := queue.Pop()
+		curLoc := cg.Get(cur)
+		if curLoc != border {
+			visited[cur] = true
+			directions := []Coordinate{
+				cur.TransformInDirection(North),
+				cur.TransformInDirection(East),
+				cur.TransformInDirection(South),
+				cur.TransformInDirection(West),
+			}
+			for _, d := range directions {
+				queue.Add(d, 1)
+			}
+		}
+	}
+
+	visitedArr := []Coordinate{}
+
+	for k, v := range visited {
+		if v {
+			visitedArr = append(visitedArr, k)
+		}
+	}
+
+	return visitedArr
+}
+
+// Find the shortest path between two coordinates
 func RunDijkstra(cg *CoordinateGrid[int], start, end Coordinate) ([]Coordinate, int, *CoordinateGrid[string]) {
-	graph := dijkstra.Graph{}
+	graph := graph.Graph{}
 
 	nm := map[Coordinate]*dijkstraGridPoint{}
 	edges := map[Coordinate][]Coordinate{}
@@ -178,7 +214,7 @@ func RunDijkstra(cg *CoordinateGrid[int], start, end Coordinate) ([]Coordinate, 
 	dgpOrder := []*dijkstraGridPoint{}
 	order := []Coordinate{}
 
-	for _, gn := range runProf.Visited {
+	for _, gn := range runProf.Path {
 		dgp := gn.(*dijkstraGridPoint)
 
 		order = append(order, dgp.Point)

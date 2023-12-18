@@ -5,51 +5,30 @@ import (
 	"math"
 	"slices"
 
+	"github.com/lspaccatrosi16/go-libs/structures/graph"
 	"github.com/lspaccatrosi16/go-libs/structures/mpq"
 )
 
-type GraphNode interface {
-	Weight() int
-	Ident() string
-}
-
-type Graph struct {
-	Nodes []GraphNode
-	Edges map[GraphNode][]GraphNode
-}
-
-func (g *Graph) AddNode(n GraphNode) {
-	g.Nodes = append(g.Nodes, n)
-}
-
-func (g *Graph) AddEdge(n1, n2 GraphNode, weight int) {
-	if g.Edges == nil {
-		g.Edges = map[GraphNode][]GraphNode{}
-	}
-
-	g.Edges[n1] = append(g.Edges[n1], n2)
-	g.Edges[n2] = append(g.Edges[n2], n1)
-}
-
 type DijkstraRun struct {
-	Visited      []GraphNode
+	Path         []graph.GraphNode
 	PathDistance int
+	NodesVisited []graph.GraphNode
 }
 
-func RunDijkstra(start, end GraphNode, graph *Graph) DijkstraRun {
+func RunDijkstra(start, end graph.GraphNode, g *graph.Graph) DijkstraRun {
 	visited := map[string]bool{}
 	dist := map[string]int{}
 	prev := map[string]string{}
 
-	identMap := map[string]GraphNode{}
+	identMap := map[string]graph.GraphNode{}
 
-	for _, n := range graph.Nodes {
+	for _, n := range g.Nodes {
 		identMap[n.Ident()] = n
 	}
 
-	queue := mpq.Queue[GraphNode]{}
+	queue := mpq.Queue[graph.GraphNode]{}
 
-	for _, node := range graph.Nodes {
+	for _, node := range g.Nodes {
 		if node.Ident() != start.Ident() {
 			dist[node.Ident()] = math.MaxInt
 			queue.Add(node, math.MaxInt)
@@ -66,7 +45,7 @@ func RunDijkstra(start, end GraphNode, graph *Graph) DijkstraRun {
 			continue
 		}
 
-		neighbors := graph.Edges[v]
+		neighbors := g.Edges[v]
 
 		for _, neighbor := range neighbors {
 			nName := neighbor.Ident()
@@ -80,7 +59,7 @@ func RunDijkstra(start, end GraphNode, graph *Graph) DijkstraRun {
 
 	// var ok bool
 
-	order := []GraphNode{}
+	order := []graph.GraphNode{}
 
 	fmt.Println(dist[end.Ident()])
 	pv := end.Ident()
@@ -99,10 +78,17 @@ func RunDijkstra(start, end GraphNode, graph *Graph) DijkstraRun {
 
 	slices.Reverse(order)
 
-	fmt.Println("finished")
+	visitedArr := []graph.GraphNode{}
+
+	for k, v := range visited {
+		if v {
+			visitedArr = append(visitedArr, identMap[k])
+		}
+	}
 
 	return DijkstraRun{
-		Visited:      order,
+		Path:         order,
 		PathDistance: dist[end.Ident()],
+		NodesVisited: visitedArr,
 	}
 }
