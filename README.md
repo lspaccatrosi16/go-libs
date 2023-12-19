@@ -12,8 +12,10 @@
 
 | Package     | Description                                                                |
 | ----------- | -------------------------------------------------------------------------- |
+| `graph`     | Graph Algorithms. [Docs](./algorithms/graph/README.md)                     |
 | `maths`     | Core mathematical algorithms. [Docs](./algorithms//maths/README.md)        |
 | `sequences` | Algorithms relating to sequences. [Docs](./algorithms/sequences/README.md) |
+
 ---
 ### `gbin`
 
@@ -68,7 +70,9 @@ Will produce a result of:
 
 | Package     | Description                                     |
 | ----------- | ----------------------------------------------- |
-| `cartesian` | Implementation of a cartesian coordinate systen |
+| `cartesian` | Implementation of a cartesian coordinate system |
+| `graph`     | Implementation of a graph structure             |
+| `mpq`       | Implementation of a minimum priority queue      |
 | `set`       | Implementation of an exclusive set in go        |
 | `stack`     | Implementation of a stack in go                 |
 
