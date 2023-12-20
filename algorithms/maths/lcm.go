@@ -1,6 +1,6 @@
 package maths
 
-func Lcm(nums ...int) int {
+func Lcm[T MInt](nums ...T) T {
 	if len(nums) < 1 {
 		return 0
 	}

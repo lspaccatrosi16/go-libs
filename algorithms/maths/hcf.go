@@ -1,10 +1,12 @@
 package maths
 
-import "math"
+import (
+	"math"
+)
 
-func Hcf(nums ...int) int {
-	var r int
-	var highest int = math.MaxInt
+func Hcf[T MInt](nums ...T) T {
+	var r T
+	var highest T = math.MaxInt32
 
 	for i := 0; (i + 1) < len(nums); i++ {
 		a := nums[0]

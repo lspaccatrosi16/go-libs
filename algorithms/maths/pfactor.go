@@ -1,9 +1,9 @@
 package maths
 
-func Pfactor(n int) []int {
-	factors := []int{}
+func Pfactor[T MInt](n T) []T {
+	factors := []T{}
 
-	for i := 2; i*i <= n; i++ {
+	for i := T(2); i*i <= n; i++ {
 		for n%i == 0 {
 			n = n / i
 			factors = append(factors, i)
