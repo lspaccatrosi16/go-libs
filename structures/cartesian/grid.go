@@ -3,7 +3,6 @@ package cartesian
 import (
 	"fmt"
 
-	"github.com/lspaccatrosi16/go-libs/algorithms/graph/dijkstra"
 	"github.com/lspaccatrosi16/go-libs/structures/graph"
 	"github.com/lspaccatrosi16/go-libs/structures/mpq"
 )
@@ -174,11 +173,10 @@ func (cg *CoordinateGrid[T]) FloodFill(start Coordinate, border T, fill T) []Coo
 	return visitedArr
 }
 
-// Find the shortest path between two coordinates
-func RunDijkstra(cg *CoordinateGrid[int], start, end Coordinate) ([]Coordinate, int, *CoordinateGrid[string]) {
+func (cg *CoordinateGrid[T]) CreateGraph(intWeights bool) (*graph.Graph, *map[Coordinate]*GraphGridPoint) {
 	graph := graph.Graph{}
 
-	nm := map[Coordinate]*dijkstraGridPoint{}
+	nm := map[Coordinate]*GraphGridPoint{}
 	edges := map[Coordinate][]Coordinate{}
 
 	rows := cg.GetRows()
@@ -186,9 +184,18 @@ func RunDijkstra(cg *CoordinateGrid[int], start, end Coordinate) ([]Coordinate, 
 	for y, r := range rows {
 		for x, i := range r {
 			coord := Coordinate{x, y}
-			gp := &dijkstraGridPoint{
-				Point: coord,
-				W:     i,
+			var gp *GraphGridPoint
+
+			if v, ok := any(i).(int); ok && intWeights {
+				gp = &GraphGridPoint{
+					Point: coord,
+					W:     v,
+				}
+			} else {
+				gp = &GraphGridPoint{
+					Point: coord,
+					W:     1,
+				}
 			}
 
 			if y+1 < len(rows) {
@@ -206,22 +213,15 @@ func RunDijkstra(cg *CoordinateGrid[int], start, end Coordinate) ([]Coordinate, 
 
 	for c, e := range edges {
 		for _, edge := range e {
-			graph.AddEdge(nm[c], nm[edge], cg.Get(edge))
+			graph.AddEdge(nm[c], nm[edge], nm[edge].W)
 		}
 	}
 
-	runProf := dijkstra.RunDijkstra(nm[start], nm[end], &graph)
+	return &graph, &nm
+}
 
-	dgpOrder := []*dijkstraGridPoint{}
-	order := []Coordinate{}
-
-	for _, gn := range runProf.Path {
-		dgp := gn.(*dijkstraGridPoint)
-
-		order = append(order, dgp.Point)
-		dgpOrder = append(dgpOrder, dgp)
-	}
-
+// Generate a secondary grid showing the results of a graph search
+func (cg *CoordinateGrid[T]) GraphSearchRepresentation(run graph.GraphRun) *CoordinateGrid[string] {
 	repreGrid := CoordinateGrid[string]{}
 
 	mx, my := cg.MaxBounds()
@@ -232,23 +232,43 @@ func RunDijkstra(cg *CoordinateGrid[int], start, end Coordinate) ([]Coordinate, 
 		}
 	}
 
-	for _, dgp := range dgpOrder {
+	var visited *GridPointList
+
+	switch run.Type {
+	case graph.Bfs:
+		visited = new(GridPointList).FromGraphNodes(run.Visited)
+	case graph.Dijkstra:
+		visited = new(GridPointList).FromGraphNodes(run.DijkstraData.Path)
+	}
+
+	for _, dgp := range *visited {
 		repreGrid.Add(dgp.Point, "#")
 	}
 
-	return order, runProf.PathDistance, &repreGrid
+	return &repreGrid
 }
 
-type dijkstraGridPoint struct {
+type GraphGridPoint struct {
 	Point Coordinate
 	W     int
 }
 
-func (d *dijkstraGridPoint) Ident() string {
+func (d *GraphGridPoint) Ident() string {
 	return fmt.Sprintf("%d_%d", d.Point[0], d.Point[1])
 
 }
 
-func (d *dijkstraGridPoint) Weight() int {
+func (d *GraphGridPoint) Weight() int {
 	return d.W
+}
+
+type GridPointList []*GraphGridPoint
+
+func (l *GridPointList) FromGraphNodes(run []graph.GraphNode) *GridPointList {
+	l = new(GridPointList)
+	for _, r := range run {
+		ggp := r.(*GraphGridPoint)
+		*l = append(*l, ggp)
+	}
+	return l
 }
