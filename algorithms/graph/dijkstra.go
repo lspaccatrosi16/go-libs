@@ -1,18 +1,20 @@
 package graph
 
 import (
+	"fmt"
 	"math"
 	"slices"
 
+	"github.com/lspaccatrosi16/go-libs/algorithms/sequences"
 	"github.com/lspaccatrosi16/go-libs/structures/graph"
 	"github.com/lspaccatrosi16/go-libs/structures/mpq"
 )
 
-func RunDijkstra(start, end graph.GraphNode, g *graph.Graph) graph.GraphRun {
+func RunDijkstra(start, end graph.GraphNode, g *graph.Graph) (graph.GraphRun, error) {
 	return runSearch(start, end, g, -1, graph.Dijkstra)
 }
 
-func dijkstraLogic(queue *mpq.Queue[graph.GraphNode], visited *map[string]bool, g *graph.Graph, dist *map[string]int, prev *map[string]string, start, end graph.GraphNode, identMap *map[string]graph.GraphNode) graph.DijkstraRun {
+func dijkstraLogic(queue *mpq.Queue[graph.GraphNode], visited *map[string]bool, g *graph.Graph, dist *map[string]int, prev *map[string]string, start, end graph.GraphNode, identMap *map[string]graph.GraphNode) (graph.DijkstraRun, error) {
 	for _, node := range g.Nodes {
 		queue.Add(node, math.MaxInt)
 	}
@@ -39,11 +41,21 @@ func dijkstraLogic(queue *mpq.Queue[graph.GraphNode], visited *map[string]bool, 
 	}
 
 	order := []graph.GraphNode{}
+	orderIdents := []string{}
+
+	var ok bool
 	pv := end.Ident()
 
 	for pv != start.Ident() {
 		order = append(order, (*identMap)[pv])
-		pv = (*prev)[pv]
+		orderIdents = append(orderIdents, pv)
+		pv, ok = (*prev)[pv]
+
+		cycle := sequences.FindCycle(orderIdents)
+
+		if !ok || cycle.RepeatLength > 1 {
+			return graph.DijkstraRun{}, fmt.Errorf("could not find path from start to end")
+		}
 	}
 
 	order = append(order, (*identMap)[start.Ident()])
@@ -53,5 +65,5 @@ func dijkstraLogic(queue *mpq.Queue[graph.GraphNode], visited *map[string]bool, 
 	return graph.DijkstraRun{
 		Path:     order,
 		Distance: (*dist)[end.Ident()],
-	}
+	}, nil
 }

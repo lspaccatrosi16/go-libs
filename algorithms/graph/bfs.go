@@ -6,7 +6,7 @@ import (
 )
 
 // Run a BFS on the defined graph. Set `searchDepth` to -1 to search full graph
-func RunBfs(start graph.GraphNode, g *graph.Graph, searchDeptch int) graph.GraphRun {
+func RunBfs(start graph.GraphNode, g *graph.Graph, searchDeptch int) (graph.GraphRun, error) {
 	return runSearch(start, start, g, searchDeptch, graph.Bfs)
 
 }

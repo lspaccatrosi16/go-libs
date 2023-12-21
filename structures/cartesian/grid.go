@@ -173,7 +173,7 @@ func (cg *CoordinateGrid[T]) FloodFill(start Coordinate, border T, fill T) []Coo
 	return visitedArr
 }
 
-func (cg *CoordinateGrid[T]) CreateGraph(intWeights bool) (*graph.Graph, *map[Coordinate]*GraphGridPoint) {
+func (cg *CoordinateGrid[T]) CreateGraph(intWeights bool, incSet []T) (*graph.Graph, *map[Coordinate]*GraphGridPoint) {
 	graph := graph.Graph{}
 
 	nm := map[Coordinate]*GraphGridPoint{}
@@ -183,6 +183,23 @@ func (cg *CoordinateGrid[T]) CreateGraph(intWeights bool) (*graph.Graph, *map[Co
 
 	for y, r := range rows {
 		for x, i := range r {
+			existsInSet := false
+
+			if len(incSet) > 0 {
+				for _, it := range incSet {
+					if i == it {
+						existsInSet = true
+						break
+					}
+				}
+			} else {
+				existsInSet = true
+			}
+
+			if !existsInSet {
+				continue
+			}
+
 			coord := Coordinate{x, y}
 			var gp *GraphGridPoint
 
@@ -213,7 +230,9 @@ func (cg *CoordinateGrid[T]) CreateGraph(intWeights bool) (*graph.Graph, *map[Co
 
 	for c, e := range edges {
 		for _, edge := range e {
-			graph.AddEdge(nm[c], nm[edge], nm[edge].W)
+			if nm[c] != nil && nm[edge] != nil {
+				graph.AddEdge(nm[c], nm[edge], nm[edge].W)
+			}
 		}
 	}
 
@@ -260,6 +279,10 @@ func (d *GraphGridPoint) Ident() string {
 
 func (d *GraphGridPoint) Weight() int {
 	return d.W
+}
+
+func (d *GraphGridPoint) Exists() bool {
+	return d != nil
 }
 
 type GridPointList []*GraphGridPoint

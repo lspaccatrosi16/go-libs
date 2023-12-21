@@ -1,13 +1,18 @@
 package graph
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/lspaccatrosi16/go-libs/structures/graph"
 	"github.com/lspaccatrosi16/go-libs/structures/mpq"
 )
 
-func runSearch(start, end graph.GraphNode, g *graph.Graph, maxDepth int, st graph.RunType) graph.GraphRun {
+func runSearch(start, end graph.GraphNode, g *graph.Graph, maxDepth int, st graph.RunType) (graph.GraphRun, error) {
+	if !start.Exists() {
+		return graph.GraphRun{}, fmt.Errorf("start node is a nil pointer")
+	}
+
 	visited := map[string]bool{}
 	dist := map[string]int{}
 	prev := map[string]string{}
@@ -30,12 +35,20 @@ func runSearch(start, end graph.GraphNode, g *graph.Graph, maxDepth int, st grap
 	queue.Add(start, 0)
 
 	var dijkstraData graph.DijkstraRun
+	var err error
 
 	switch st {
 	case graph.Bfs:
 		bfsLogic(&queue, &visited, g, &dist, maxDepth)
 	case graph.Dijkstra:
-		dijkstraData = dijkstraLogic(&queue, &visited, g, &dist, &prev, start, end, &identMap)
+		if !end.Exists() {
+			return graph.GraphRun{}, fmt.Errorf("end node is a nil pointer")
+		}
+		dijkstraData, err = dijkstraLogic(&queue, &visited, g, &dist, &prev, start, end, &identMap)
+	}
+
+	if err != nil {
+		return graph.GraphRun{}, err
 	}
 
 	visitedArr := []graph.GraphNode{}
@@ -52,5 +65,5 @@ func runSearch(start, end graph.GraphNode, g *graph.Graph, maxDepth int, st grap
 		Dist:         dist,
 		IdentMap:     identMap,
 		Type:         st,
-	}
+	}, nil
 }

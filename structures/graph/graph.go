@@ -3,6 +3,7 @@ package graph
 type GraphNode interface {
 	Weight() int
 	Ident() string
+	Exists() bool
 }
 
 type Graph struct {
