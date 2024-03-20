@@ -173,7 +173,7 @@ func (cg *CoordinateGrid[T]) FloodFill(start Coordinate, border T, fill T) []Coo
 	return visitedArr
 }
 
-func (cg *CoordinateGrid[T]) CreateGraph(intWeights bool, incSet []T) (*graph.Graph, *map[Coordinate]*GraphGridPoint) {
+func (cg *CoordinateGrid[T]) CreateGraph(intWeights bool, incSet []T, diagonal bool) (*graph.Graph, *map[Coordinate]*GraphGridPoint) {
 	graph := graph.Graph{}
 
 	nm := map[Coordinate]*GraphGridPoint{}
@@ -221,6 +221,10 @@ func (cg *CoordinateGrid[T]) CreateGraph(intWeights bool, incSet []T) (*graph.Gr
 
 			if x+1 < len(r) {
 				edges[coord] = append(edges[coord], coord.Transform(1, 0))
+			}
+
+			if x+1 < len(r) && y+1 < len(rows) {
+				edges[coord] = append(edges[coord], coord.Transform(1, 1))
 			}
 
 			graph.AddNode(gp)

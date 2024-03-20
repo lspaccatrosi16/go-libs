@@ -24,7 +24,7 @@ func TestRunes(t *testing.T) {
 		}
 	}
 
-	g, nm := grid.CreateGraph(false, []rune{'a', 'c', 'e', 'i', 'o', 'u'})
+	g, nm := grid.CreateGraph(false, []rune{'a', 'c', 'e', 'i', 'o', 'u'}, false)
 
 	start := (*nm)[Coordinate{0, 0}]
 	end := (*nm)[Coordinate{3, 4}]
