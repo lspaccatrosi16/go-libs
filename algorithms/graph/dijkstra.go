@@ -2,7 +2,6 @@ package graph
 
 import (
 	"fmt"
-	"math"
 	"slices"
 
 	"github.com/lspaccatrosi16/go-libs/algorithms/sequences"
@@ -15,10 +14,6 @@ func RunDijkstra(start, end graph.GraphNode, g *graph.Graph) (graph.GraphRun, er
 }
 
 func dijkstraLogic(queue *mpq.Queue[graph.GraphNode], visited *map[string]bool, g *graph.Graph, dist *map[string]int, prev *map[string]string, start, end graph.GraphNode, identMap *map[string]graph.GraphNode) (graph.DijkstraRun, error) {
-	for _, node := range g.Nodes {
-		queue.Add(node, math.MaxInt)
-	}
-
 	for queue.Len() != 0 {
 		v := queue.Pop()
 		name := v.Ident()
@@ -36,6 +31,7 @@ func dijkstraLogic(queue *mpq.Queue[graph.GraphNode], visited *map[string]bool, 
 			if alt < (*dist)[nName] {
 				(*dist)[nName] = alt
 				(*prev)[nName] = name
+				queue.Add(neighbor, alt)
 			}
 		}
 	}
