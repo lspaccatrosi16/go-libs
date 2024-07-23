@@ -7,7 +7,7 @@ import (
 	"github.com/lspaccatrosi16/go-libs/internal/pkgError"
 )
 
-var errorf = pkgError.ErrorfFactory("parser")
+var errorf = pkgError.ErrorfFactory("interpolator")
 
 // takes in a string with formatting directives, and finds them from a map[string]interface{} of values until it reaches the value
 

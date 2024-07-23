@@ -4,6 +4,7 @@
 - [`algorithms`](#algorithms) - Various algorithms implemented in go
 - [`gbin`](#gbin) - Binary serialisation for (almost) *every* go data structure 
 - [`interpolator`](#interpolator) - String interpolation from maps of data
+- [`statistics`](#statistics) - Statistics library
 - [`structures`](#structures) - Data structures implemented in go
 
 ---
@@ -64,6 +65,17 @@ res,err := interpolator.ParseString(input, data)
 Will produce a result of:
 
 ```b comes after a, but 1 doesn't come after true```
+
+---
+### `statistics`
+
+| Package      | Description                                  |
+| ------------ | -------------------------------------------- |
+| `data`       | Analysis of sample data                      |
+| `regression` | Calculation of regressions on bivariate data |
+
+> [!CAUTION]
+> Unless explicitely stated, all data is assumed to be sample data, and thus will use Bessel's correction
 
 ---
 ### `structures`
